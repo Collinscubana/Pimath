@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="description" content="PiMath is a lightweight mathematics learning app for Pi Browser.">
+<title>PiMath — Mathematics Learning</title>
+<style>
+:root{--bg:#0b0d12;--panel:#151923;--card:#1b2130;--line:#2a3140;--txt:#f4f6fa;--muted:#9ba5b5;--pi:#8b5cf6;--good:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+button,input,select{font:inherit}
+button{cursor:pointer}
+#app{width:100%;max-width:620px;margin:auto;padding-bottom:76px}
+.header{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(11,13,18,.96);border-bottom:1px solid var(--line)}
+.logo{font-size:20px;font-weight:800}.logo b{color:var(--pi)}
+.stats{display:flex;gap:10px;font-size:13px;color:var(--muted)}
+.stats span{font-weight:700;color:var(--txt)}
+.view{display:none;padding:16px}.view.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.hero{background:linear-gradient(145deg,#211a39,#171c29)}
+h2{font-size:22px;margin:8px 0 5px}h3{margin-bottom:7px}
+.small{font-size:13px;color:var(--muted);line-height:1.45}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:800;background:#302050;color:#c4b5fd}
+.progress{height:8px;background:#292f3c;border-radius:8px;overflow:hidden;margin:12px 0}
+.progress i{display:block;height:100%;width:0;background:var(--pi);transition:width .2s}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;border:0;border-radius:12px;padding:12px 14px;background:#315ee8;color:#fff;font-weight:700}
+.btn.pi{background:var(--pi)}.btn.secondary{background:#242a37;color:var(--txt)}
+.btn.small{width:auto;padding:8px 12px;font-size:13px}
+.subject{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mode{display:flex;background:#151a24;border:1px solid var(--line);padding:3px;border-radius:24px;margin-bottom:14px}
+.mode button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px;border-radius:20px;font-weight:700}
+.mode button.active{background:var(--pi);color:#fff}
+.question{padding:24px 12px;text-align:center;background:#10141c;border:1px solid var(--line);border-radius:14px;font-size:20px;margin:12px 0}
+.answer{min-height:52px;padding:13px;text-align:center;border:1px solid var(--line);border-radius:10px;background:#0c0f15;font-size:22px;margin-bottom:10px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.key{padding:15px;border:1px solid var(--line);border-radius:10px;background:#1b2130;color:var(--txt);font-weight:700;font-size:18px}
+.nav{position:fixed;z-index:30;bottom:0;left:0;right:0;height:64px;background:rgba(11,13,18,.98);border-top:1px solid var(--line);display:flex;justify-content:center}
+.nav button{flex:1;max-width:124px;border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:600}
+.nav button.active{color:#c4b5fd}.nav svg{display:block;margin:0 auto 3px;width:20px;height:20px;fill:currentColor}
+.calc{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.display{grid-column:1/-1;min-height:82px;padding:14px;text-align:right;background:#0c0f15;border:1px solid var(--line);border-radius:12px;overflow:hidden}.expr{font-size:13px;color:var(--muted);min-height:20px}.value{font-size:28px;font-weight:800;word-break:break-all}
+.chat{height:320px;overflow:auto;display:flex;flex-direction:column;gap:8px}.bubble{max-width:86%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.4}.bubble.t{background:#222937;align-self:flex-start}.bubble.u{background:var(--pi);align-self:flex-end}
+.status{padding:10px;border-radius:10px;background:#10141c;border:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+<header class="header">
+  <div class="logo">PiMath<b>.</b></div>
+  <div class="stats">XP <span id="xp">0</span> · Streak <span id="streak">1</span></div>
+</header>
+
+<main id="home" class="view active">
+  <section class="card hero">
+    <span class="badge">MATHEMATICS</span>
+    <h2>Learn mathematics step by step</h2>
+    <p class="small">Practice, receive hints, and track your learning progress locally on your device.</p>
+    <div class="progress"><i id="overall"></i></div>
+    <div class="row small"><span id="overallText">0% completed</span><span id="subjectsText">0/41 subjects</span></div>
+  </section>
+  <section class="card">
+    <h3>Continue learning</h3>
+    <div class="row"><div><b id="continueSubject">Whole Numbers</b><div class="small" id="continueStep">Level 1 · Step 1/10</div></div><button class="btn pi small" onclick="App.resume()">Continue</button></div>
+  </section>
+  <div class="grid2">
+    <button class="card" onclick="App.tab('calculator')"><b>Calculator</b><div class="small">Basic calculator</div></button>
+    <button class="card" onclick="App.tab('tutor')"><b>Tutor</b><div class="small">Hints and guidance</div></button>
+  </div>
+</main>
+
+<main id="learn" class="view">
+  <div class="mode"><button id="primaryMode" class="active" onclick="App.mode('primary')">PRIMARY</button><button id="advancedMode" onclick="App.mode('advanced')">ADVANCED</button></div>
+  <div id="subjects"></div>
+</main>
+
+<main id="step" class="view">
+  <div class="row"><button class="btn secondary small" onclick="App.tab('learn')">Back</button><b id="stepTitle">Lesson</b><span class="badge" id="stepBadge">1/10</span></div>
+  <div class="progress"><i id="stepProgress"></i></div>
+  <section class="card">
+    <p class="small" id="lesson"></p>
+    <div class="question" id="question"></div>
+    <div class="answer" id="answer"></div>
+    <div class="pad">
+      <button class="key" onclick="App.input('1')">1</button><button class="key" onclick="App.input('2')">2</button><button class="key" onclick="App.input('3')">3</button>
+      <button class="key" onclick="App.input('4')">4</button><button class="key" onclick="App.input('5')">5</button><button class="key" onclick="App.input('6')">6</button>
+      <button class="key" onclick="App.input('7')">7</button><button class="key" onclick="App.input('8')">8</button><button class="key" onclick="App.input('9')">9</button>
+      <button class="key" onclick="App.input('.')">.</button><button class="key" onclick="App.input('0')">0</button><button class="key" onclick="App.clear()">C</button>
+    </div>
+    <div class="grid2" style="margin-top:10px"><button class="btn secondary" onclick="App.hint()">Hint</button><button class="btn pi" onclick="App.submit()">Submit</button></div>
+  </section>
+  <section class="card" id="feedback" hidden><b>Tutor guidance</b><p class="small" id="feedbackText" style="margin-top:5px"></p></section>
+</main>
+
+<main id="tutor" class="view">
+  <section class="card"><b>Math Tutor</b><p class="small">Guidance is generated locally; no account or message data is sent by this page.</p></section>
+  <div id="chat" class="chat card"><div class="bubble t">Hello. Choose a lesson and I can give you a strategy hint.</div></div>
+  <div class="grid2"><button class="btn secondary" onclick="App.ask('Explain the current step')">Explain step</button><button class="btn secondary" onclick="App.ask('Give me a strategy hint')">Strategy hint</button></div>
+</main>
+
+<main id="calculator" class="view">
+  <section class="card calc">
+    <div class="display"><div class="expr" id="calcExpr"></div><div class="value" id="calcValue">0</div></div>
+    <button class="key" onclick="App.calcClear()">C</button><button class="key" onclick="App.calcOp('(')">(</button><button class="key" onclick="App.calcOp(')')">)</button><button class="key" onclick="App.calcOp('/')">÷</button>
+    <button class="key" onclick="App.calcNum('7')">7</button><button class="key" onclick="App.calcNum('8')">8</button><button class="key" onclick="App.calcNum('9')">9</button><button class="key" onclick="App.calcOp('*')">×</button>
+    <button class="key" onclick="App.calcNum('4')">4</button><button class="key" onclick="App.calcNum('5')">5</button><button class="key" onclick="App.calcNum('6')">6</button><button class="key" onclick="App.calcOp('-')">−</button>
+    <button class="key" onclick="App.calcNum('1')">1</button><button class="key" onclick="App.calcNum('2')">2</button><button class="key" onclick="App.calcNum('3')">3</button><button class="key" onclick="App.calcOp('+')">+</button>
+    <button class="key" onclick="App.calcNum('0')">0</button><button class="key" onclick="App.calcNum('.')">.</button><button class="key" onclick="App.calcSqrt()">√</button><button class="key" onclick="App.calcEquals()">=</button>
+  </section>
+</main>
+
+<main id="profile" class="view">
+  <section class="card"><h3>PiMath Scholar</h3><p class="small">Your learning progress is stored locally in this browser.</p></section>
+  <section class="card"><h3>Pi Browser integration</h3><p class="small">Pi authentication is optional and only activates when the official Pi SDK is available.</p><div id="piStatus" class="status" style="margin-top:8px">Checking Pi SDK…</div><button class="btn pi" style="margin-top:8px" onclick="App.piLogin()">Sign in with Pi</button></section>
+  <button class="btn secondary" onclick="App.reset()">Reset local progress</button>
+</main>
+</div>
+
+<nav class="nav">
+<button class="active" id="n-home" onclick="App.tab('home')"><svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3z"/></svg>Home</button>
+<button id="n-learn" onclick="App.tab('learn')"><svg viewBox="0 0 24 24"><path d="M12 3 1 9l11 6 9-4.9V17h2V9zM5 13v4l7 4 7-4v-4l-7 3.8z"/></svg>Learn</button>
+<button id="n-tutor" onclick="App.tab('tutor')"><svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>Tutor</button>
+<button id="n-calculator" onclick="App.tab('calculator')"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM7 7h10v2H7zm0 4h10v2H7zm0 4h10v2H7z"/></svg>Calc</button>
+<button id="n-profile" onclick="App.tab('profile')"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5z"/></svg>Profile</button>
+</nav>
+
+<!-- Official Pi SDK. No wallet passphrase, secret key, mining automation, or payment bypass is used. -->
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<script>
+'use strict';
+const App=(()=> {
+const P=["Whole Numbers","Addition & Subtraction","Multiplication","Division","Fractions","Decimals","Percentages","Factors & Multiples","Ratios","Basic Algebra","Geometry","Measurement","Time","Money","Data & Graphs","Probability","Patterns & Sequences","Word Problems","Logical Reasoning","Primary Math Challenge"];
+const A=["Basic Arithmetic","Number Sense","Fractions","Decimals","Percentages","Ratios & Proportions","Algebra","Linear Equations","Inequalities","Simultaneous Equations","Quadratic Equations","Exponents & Radicals","Geometry","Mensuration","Trigonometry","Statistics","Probability","Financial Mathematics","Calculus","Mathematical Reasoning","Pi Mathematics"];
+let s={mode:"primary",xp:0,streak:1,input:"",current:null,progress:{primary:{},advanced:{}}};
+P.forEach(x=>s.progress.primary[x]={level:1,step:1}); A.forEach(x=>s.progress.advanced[x]={level:1,step:1});
+function save(){try{localStorage.setItem("pimath_v2",JSON.stringify(s))}catch(e){}}
+function load(){try{const x=JSON.parse(localStorage.getItem("pimath_v2"));if(x){s={...s,...x};s.progress={primary:{...s.progress.primary},advanced:{...s.progress.advanced}}}}catch(e){}}
+function q(subject,l,st){
+if(subject==="Fractions")return{q:`Simplify ${st*2}/${st*4}`,a:"1/2",lesson:"Divide the numerator and denominator by their greatest common factor.",hint:"Both numbers can be divided by the numerator."};
+if(subject==="Pi Mathematics"){let r=st+1;return{q:`Find the diameter when radius r = ${r}`,a:String(2*r),lesson:"The diameter of a circle is twice its radius: d = 2r.",hint:`Multiply ${r} by 2.`}}
+let n1=l*3+st,n2=l+2;
+return{q:`${n1} + ${n2} = ?`,a:String(n1+n2),lesson:`Practice ${subject}. Add the two numbers to find the total.`,hint:`Calculate ${n1} + ${n2}.`};
+}
+function stats(){xp.textContent=s.xp;streak.textContent=s.streak;let list=s.mode==="primary"?P:A,done=0;list.forEach(x=>{let p=s.progress[s.mode][x];done+=Math.max(0,p.step-1)+(p.level-1)*10});let total=list.length*10*10,pct=Math.min(100,Math.round(done/total*100));overall.style.width=pct+"%";overallText.textContent=pct+"% completed";subjectsText.textContent=list.length+"/41 subjects";let first=list[0],p=s.progress[s.mode][first];continueSubject.textContent=first;continueStep.textContent=`Level ${p.level} · Step ${p.step}/10`}
+function tab(id){document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));let n=document.getElementById("n-"+id);if(n)n.classList.add("active");if(id==="learn")render()}
+function mode(m){s.mode=m;primaryMode.classList.toggle("active",m==="primary");advancedMode.classList.toggle("active",m==="advanced");render();save()}
+function render(){subjects.innerHTML="";let list=s.mode==="primary"?P:A;list.forEach(name=>{let p=s.progress[s.mode][name]||{level:1,step:1};let el=document.createElement("section");el.className="card subject";let info=document.createElement("div");info.innerHTML=`<b></b><div class="small"></div>`;info.firstChild.textContent=name;info.lastChild.textContent=`Level ${p.level} · Step ${p.step}/10`;let b=document.createElement("button");b.className="btn pi small";b.textContent="Start";b.onclick=()=>start(name,p.level,p.step);el.append(info,b);subjects.appendChild(el)})}
+function start(name,l,st){s.current={subject:name,level:l,step:st,...q(name,l,st)};stepTitle.textContent=name+" · L"+l;stepBadge.textContent=`Step ${st}/10`;stepProgress.style.width=(st*10)+"%";lesson.textContent=s.current.lesson;question.textContent=s.current.q;clear();feedback.hidden=true;tab("step")}
+function input(x){if(s.input.length<32){s.input+=x;answer.textContent=s.input}}
+function clear(){s.input="";answer.textContent=""}
+function hint(){if(!s.current)return;feedbackText.textContent=s.current.hint;feedback.hidden=false}
+function submit(){if(!s.current)return;if(s.input.trim()===s.current.a){s.xp+=10;let p=s.progress[s.mode][s.current.subject];if(p.step<10)p.step++;else{p.step=1;p.level++}save();stats();let subject=s.current.subject,l=p.level,st=p.step;if(st===1)tab("learn");else start(subject,l,st)}else{feedbackText.textContent="Not quite. "+s.current.hint;feedback.hidden=false}}
+function resume(){let list=s.mode==="primary"?P:A,p=s.progress[s.mode][list[0]];start(list[0],p.level,p.step)}
+function ask(text){let u=document.createElement("div");u.className="bubble u";u.textContent=text;chat.appendChild(u);let r=document.createElement("div");r.className="bubble t";r.textContent=s.current?(text.includes("Explain")?s.current.lesson:s.current.hint):"Open a lesson first, then ask for guidance.";chat.appendChild(r);chat.scrollTop=chat.scrollHeight}
+let c={expr:"",val:"0"};
+function calcRender(){calcExpr.textContent=c.expr;calcValue.textContent=c.val}
+function calcNum(x){if(c.val==="0"&&x!==".")c.val=x;else if(x==="."&&c.val.includes("."))return;else c.val+=x;calcRender()}
+function calcOp(x){if(x==="("||x===")")c.expr+=c.val+" "+x+" ",c.val="0";else c.expr+=c.val+" "+x+" ",c.val="0";calcRender()}
+function calcClear(){c={expr:"",val:"0"};calcRender()}
+function calcSqrt(){let n=Number(c.val);c.val=Number.isFinite(n)&&n>=0?String(Math.sqrt(n)):"Error";calcRender()}
+function safeEval(str){if(!/^[0-9+\-*/().\s]+$/.test(str))throw Error();let toks=str.match(/(?:\d+(?:\.\d*)?|\.\d+|[()+\-*/])/g)||[];let i=0;
+function expr(){let v=term();while(toks[i]==="+"||toks[i]==="-"){let o=toks[i++],r=term();v=o==="+"?v+r:v-r}return v}
+function term(){let v=unary();while(toks[i]==="*"||toks[i]==="/"){let o=toks[i++],r=unary();if(o==="*" )v*=r;else{if(r===0)throw Error();v/=r}}return v}
+function unary(){if(toks[i]==="-"){i++;return -unary()}if(toks[i]==="+"){i++;return unary()}if(toks[i]==="("){i++;let v=expr();if(toks[i++]!==")")throw Error();return v}let v=Number(toks[i++]);if(!Number.isFinite(v))throw Error();return v}
+let out=expr();if(i!==toks.length||!Number.isFinite(out))throw Error();return out}
+function calcEquals(){try{let full=c.expr+c.val;c.val=String(safeEval(full));c.expr=full+" ="}catch(e){c.val="Error"}calcRender()}
+async function piLogin(){let status=document.getElementById("piStatus");if(!window.Pi){status.textContent="Pi SDK is not available. Open this app inside Pi Browser after deployment.";return}try{
+Pi.init({version:"2.0"});
+const auth=await Pi.authenticate(["username"],()=>{});
+status.textContent="Signed in as "+(auth.user&&auth.user.username?auth.user.username:"Pi user")+".";
+}catch(e){status.textContent="Pi authentication was not completed.";}}
+function reset(){if(confirm("Reset local learning progress?")){localStorage.removeItem("pimath_v2");location.reload()}}
+function init(){load();stats();render();if(window.Pi){try{Pi.init({version:"2.0"});piStatus.textContent="Pi SDK detected. Authentication is available in Pi Browser."}catch(e){piStatus.textContent="Pi SDK detected; initialization will be retried when needed."}}else piStatus.textContent="Pi SDK not detected in this browser."}
+return{init,tab,mode,input,clear,hint,submit,resume,ask,calcNum,calcOp,calcClear,calcSqrt,calcEquals,piLogin,reset}
+})();
+document.addEventListener("DOMContentLoaded",App.init);
+</script>
+</body>
+</html>
